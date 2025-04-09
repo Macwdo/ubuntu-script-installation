@@ -59,7 +59,7 @@ func ChangeDefaultShell() {
 func InstallOhMyZsh() {
 	skipMsg := ""
 
-	ohmyzshDir := GetUserHome() + string(os.PathSeparator) + ".oh-my-zsh"
+	ohmyzshDir := GetUserHome() + "/" + ".oh-my-zsh"
 
 	info, err := os.Stat(ohmyzshDir)
 	if err == nil && info.IsDir() {
@@ -79,32 +79,21 @@ func InstallOhMyZsh() {
 	RunCommand("sh -c \"$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)\"")
 }
 
-// def setup_zsh_plugins():
-//     log("Passo: Configurando plugins do Zsh...", BLUE)
+// def install_powerlevel10k():
+//     log("Passo: Instalando Powerlevel10k...", BLUE)
 //     home = os.path.expanduser("~")
-//     custom_plugins_dir = os.path.join(home, ".oh-my-zsh", "custom", "plugins")
-//     os.makedirs(custom_plugins_dir, exist_ok=True)
+//     omz_custom = os.path.join(home, ".oh-my-zsh", "custom")
+//     themes_dir = os.path.join(omz_custom, "themes")
+//     os.makedirs(themes_dir, exist_ok=True)
+//     dest = os.path.join(themes_dir, "powerlevel10k")
+//     clone_repo("https://github.com/romkatv/powerlevel10k.git --depth=1", dest)
 
-//     plugins = {
-//         "zsh-autosuggestions": "https://github.com/zsh-users/zsh-autosuggestions.git",
-//         "zsh-syntax-highlighting": "https://github.com/zsh-users/zsh-syntax-highlighting.git"
-//     }
-
-//     for name, repo_url in plugins.items():
-//         dest = os.path.join(custom_plugins_dir, name)
-//         if os.path.isdir(dest):
-//             log(f"Plugin {name} já instalado, pulando.", YELLOW)
-//         else:
-//             try:
-//                 run_command(f"git clone {repo_url} {dest}")
-//                 log(f"Plugin {name} instalado com sucesso.", GREEN)
-//             except subprocess.CalledProcessError:
-//                 log(f"Erro ao clonar o plugin {name}.", RED)
-
-// WIP
-func DownloadingZshPlugins() {
+func InstallZshPlugins() {
 	path := GetUserHome()
-	customPluginsDir := path + "/.oh-my-zsh/custom/plugins"
+
+	omzCustomDir := path + "/.oh-my-zsh/custom/"
+	customPluginsDir := omzCustomDir + "plugins"
+
 	os.MkdirAll(customPluginsDir, os.ModePerm)
 	plugins := map[string]string{
 		"zsh-autosuggestions":     "https://github.com/zsh-users/zsh-autosuggestions.git",
@@ -113,16 +102,32 @@ func DownloadingZshPlugins() {
 
 	for name, repoURL := range plugins {
 		dest := customPluginsDir + "/" + name
-		if _, err := os.Stat(dest); err == nil {
-			LogMessage(name+" já instalado, pulando.", Italic, Yellow)
+
+		LogMessage("Installing "+name+" plugin", Normal, Grey)
+
+		if CheckDir(dest) {
+			LogMessage(name+" already exists", Italic, Yellow)
 			continue
 		}
 
-		LogMessage("Installing plugin "+name+"...", Normal, Yellow)
 		err := RunCommandErr("git clone " + repoURL + " " + dest)
 		if err != nil {
 			LogMessage("Error cloning plugin "+name+": "+err.Error(), Bold, Red)
 			continue
 		}
 	}
+
+	LogMessage("Installing P10K", Normal, Grey)
+	customThemesDir := omzCustomDir + "themes"
+	if CheckDir(customThemesDir) {
+		LogMessage("P10k Already Exists", Italic, Yellow)
+	}
+
+	repoUrl := "https://github.com/romkatv/powerlevel10k.git --depth=1"
+	err := RunCommandErr("git clone " + repoUrl + " " + customThemesDir)
+
+	if err != nil {
+		LogMessage("Error trying to install P10k", Bold, Red)
+	}
+
 }

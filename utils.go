@@ -65,3 +65,11 @@ func GetUserHome() string {
 	home := "/home/" + user
 	return home
 }
+
+func CheckDir(dir string) bool {
+	if _, err := os.Stat(dir); err == nil {
+		return true
+	}
+
+	return false
+}
